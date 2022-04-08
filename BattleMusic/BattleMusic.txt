@@ -1,0 +1,73 @@
+﻿-- Register the behaviour
+behaviour("BattleMusic")
+
+local eagleTeamKC = 0;
+local ravenTeamKC = 0;
+
+local playMusic = false;
+local matchEnd = false;
+
+function BattleMusic:Start()
+	-- Run when behaviour is created
+	print("Battle Music")
+	GameEvents.onActorDied.AddListener(self,"onActorDied")
+	GameEvents.onMatchEnd.AddListener(self,"onMatchEnd")
+
+	self.volume = self.script.mutator.GetConfigurationRange("volume")
+	self.manualKey = string.lower(self.script.mutator.GetConfigurationString("manualKey"))
+	self.EagleKC = self.script.mutator.GetConfigurationInt("EagleKC")
+	self.RavenKC = self.script.mutator.GetConfigurationInt("RavenKC")
+	
+	self.songChoice = self.script.mutator.GetConfigurationDropdown("songChoice")
+
+	print(self.songChoice)
+
+	self.songs = {}
+	self.songs = self.targets.Songs.GetComponentsInChildren(ScriptedBehaviour)
+
+	print(#self.songs)
+
+	self.song = self.songs[self.songChoice+1].self
+
+	local vol = self.volume/100
+
+	self.song:SetVolume(vol)
+
+	eagleTeamKC = 0;
+	ravenTeamKC = 0;
+
+	self.eagleDeaths = 0
+	self.ravenDeaths = 0
+
+
+	matchEnd = false;
+	playMusic = false;
+end
+
+function BattleMusic:Update()
+	-- Run every frame
+	if(Input.GetKeyDown(self.manualKey)) then
+		playMusic = true;
+		print("Play music")
+		self.song:Play()
+	end
+end
+
+function BattleMusic:onActorDied(actor,source,isSilent)
+	if(actor.team == Team.Red) then
+		self.ravenDeaths = self.ravenDeaths + 1
+	elseif (actor.team == Team.Blue) then
+		self.eagleDeaths = self.eagleDeaths + 1
+	end
+
+	if ((self.eagleDeaths >= self.EagleKC) or (self.ravenDeaths >= self.RavenKC)) and playMusic == false and matchEnd == false then
+		playMusic = true;
+		self.song:Play()
+	end
+end
+
+function BattleMusic:onMatchEnd(team)
+	playMusic = false;
+	matchEnd = true;
+	self.song:End()
+end

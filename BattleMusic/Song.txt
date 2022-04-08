@@ -1,0 +1,43 @@
+﻿-- Register the behaviour
+behaviour("Song")
+
+function Song:Start()
+	-- Run when behaviour is created
+	self.dataContainer = self.gameObject.GetComponent(DataContainer)
+	self.songName = self.dataContainer.GetString("songName")
+
+	self.intro = self.targets.intro
+	self.loop = self.targets.loop
+	self.outro = self.targets.outro
+
+	self.targets.intro.SetOutputAudioMixer(AudioMixer.Music)
+	self.targets.loop.SetOutputAudioMixer(AudioMixer.Music)
+	self.targets.outro.SetOutputAudioMixer(AudioMixer.Music)
+
+	self.playMusic = false;
+end
+
+function Song:Update()
+	-- Run every frame
+	if(self.playMusic == true and self.targets.intro.isPlaying == false and self.targets.loop.isPlaying == false) then
+		self.targets.loop.Play()
+	end
+end
+
+function Song:SetVolume(vol)
+	self.targets.intro.volume = vol
+	self.targets.loop.volume = vol
+	self.targets.outro.volume = vol
+end
+
+function Song:Play()
+	self.targets.intro.Play()
+	self.playMusic = true
+end
+
+function Song:End()
+	self.playMusic = false
+	self.targets.intro.Stop()
+	self.targets.loop.Stop()
+	self.targets.outro.Play()
+end
